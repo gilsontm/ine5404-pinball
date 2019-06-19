@@ -11,11 +11,10 @@ public class Flipper implements Collideable {
 	private Integer x, y;
 	
 	public Flipper(String path, Integer x, Integer y) {
+		this.x = x;
+		this.y = y;
 		try {
-			this.sprite = ImageIO.read(new File(path));
-			this.x = x;
-			this.y = y;
-			
+			this.sprite = ImageIO.read(new File(path));			
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

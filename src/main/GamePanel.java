@@ -2,7 +2,6 @@ package main;
 
 import java.awt.Graphics;
 import java.util.ArrayList;
-import java.util.Random;
 
 import javax.swing.JPanel;
 
@@ -12,16 +11,13 @@ public class GamePanel extends JPanel {
 	private Ball ball;
 	private Flipper leftFlipper, rightFlipper;
 	//private Random random = new Random();
-	
-	private boolean collided = false;
-	private int count = 0;
-	
+		
 	private ArrayList<Collideable> objects = new ArrayList<Collideable>();
 	
-	public GamePanel(Ball ball) {
-		this.ball = ball;
-		this.leftFlipper = new Flipper("/home/100000000901491/Desktop/pinball-master/src/main/flipperLeft.png", 80, 550);
-		this.rightFlipper = new Flipper("/home/100000000901491/Desktop/pinball-master/src/main/flipperRight.png", 220, 550);
+	public GamePanel() {
+		this.ball = new Ball("/home/gilson/Documents/pinball/src/main/ball.png", 100, 200);
+		this.leftFlipper = new Flipper("/home/gilson/Documents/pinball/src/main/flipperLeft.png", 80, 550);
+		this.rightFlipper = new Flipper("/home/gilson/Documents/pinball/src/main/flipperRight.png", 220, 550);
 		this.objects.add(this.rightFlipper);
 		this.objects.add(this.leftFlipper);
 	}
@@ -30,18 +26,13 @@ public class GamePanel extends JPanel {
 		super.paintComponent(g);	
 		
 		this.sideCollision();
-		if (!collided && count > 10) {
-			this.objectCollision();
-			count = 0;
-		} else {
-			count++;
-		}
 		
-		g.setColor(this.ball.getColor());
+		//g.setColor(this.ball.getColor());
 		
-		g.fillOval(this.ball.getX(), this.ball.getY(), this.ball.getRadius(), this.ball.getRadius());
+		//g.fillOval(this.ball.getX(), this.ball.getY(), this.ball.getWidth(), this.ball.getHeight());
 		
 		//g.drawImage(img, x, y, bgcolor, observer);
+		g.drawImage(this.ball.getSprite(), this.ball.getX(), this.ball.getY(), null);
 		g.drawImage(this.leftFlipper.getSprite(), this.leftFlipper.getX(), this.leftFlipper.getY(), null);
 		g.drawImage(this.rightFlipper.getSprite(), this.rightFlipper.getX(), this.rightFlipper.getY(), null);
 	}
@@ -56,6 +47,10 @@ public class GamePanel extends JPanel {
 		}
 	}
 	
+	public void pixelCollision() {
+		
+	}
+	
 	public void objectCollision() {
 		Integer[] areaY, areaX;
 		
@@ -68,81 +63,52 @@ public class GamePanel extends JPanel {
 					
 					this.ball.setSpeedX(this.ball.getSpeedX() * -1);
 					this.ball.setSpeedY(this.ball.getSpeedY() * -1);
-					System.out.println("0,0");
-					collided = true;
 					
 				} else if (areaY[0] <= ball.getY() && ball.getY() < areaY[1]) {
 					
 					//this.ball.setSpeedX(this.ball.getSpeedX() * -1);
 					this.ball.setSpeedY(this.ball.getSpeedY() * -1);
-					System.out.println("0,1");
-					collided = true;
 					
 				} else if (areaY[1] <= ball.getY() && ball.getY() < areaY[2]) {
 					
 					this.ball.setSpeedX(this.ball.getSpeedX() * -1);
 					this.ball.setSpeedY(this.ball.getSpeedY() * -1);
-					System.out.println("0,2");
-					collided = true;
-					
-				} else {
-					collided = false;
 				}
 			} else if (areaX[0] <= ball.getX() && ball.getX() < areaX[1]) {
 				
 				if (c.getY() <= ball.getY() && ball.getY() < areaY[0]) {
 					
 					this.ball.setSpeedX(this.ball.getSpeedX() * -1);
-			//		this.ball.setSpeedY(this.ball.getSpeedY() * -1);
-					System.out.println("1,0");
-					collided = true;
 					
 				} else if (areaY[0] <= ball.getY() && ball.getY() < areaY[1]) {
 					
 					//this.ball.setSpeedX(this.ball.getSpeedX() * -1); Nunca ocorre
 					//this.ball.setSpeedY(this.ball.getSpeedY() * -1);
-					System.out.println("1,1");
-					collided = true;
 					
 				} else if (areaY[1] <= ball.getY() && ball.getY() < areaY[2]) {
 					
 					this.ball.setSpeedX(this.ball.getSpeedX() * -1);
 					//this.ball.setSpeedY(this.ball.getSpeedY() * -1);
-					System.out.println("1,2");
-					collided = true;
-					
-				} else {
-					collided = false;
 				}
 			} else if (areaX[1] <= ball.getX() && ball.getX() < areaX[2]) {
 				if (c.getY() <= ball.getY() && ball.getY() < areaY[0]) {
 					
 					this.ball.setSpeedX(this.ball.getSpeedX() * -1);
 					this.ball.setSpeedY(this.ball.getSpeedY() * -1);
-					System.out.println("2,0");
-					collided = true;
 					
 				} else if (areaY[0] <= ball.getY() && ball.getY() < areaY[1]) {
 					
 				//	this.ball.setSpeedX(this.ball.getSpeedX() * -1);
 					this.ball.setSpeedY(this.ball.getSpeedY() * -1);
-					System.out.println("2,1");
-					collided = true;
 					
 				} else if (areaY[1] <= ball.getY() && ball.getY() < areaY[2]) {
 					
 					this.ball.setSpeedX(this.ball.getSpeedX() * -1);
 					this.ball.setSpeedY(this.ball.getSpeedY() * -1);
-					System.out.println("2,2");
-					collided = true;
+
 				}
-				else {
-					collided = false;
-				}
-			} else {
-				collided = false;
 			}
-			
+
 //			this.ball.setSpeedX(this.ball.getSpeedX() * -1);
 //			this.ball.setSpeedY(this.ball.getSpeedY() * -1);
 //			

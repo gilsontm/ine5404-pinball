@@ -14,7 +14,7 @@ public class GameFrame extends JFrame {
 	private JPanel rightPanel;
 	
 	public GameFrame() {
-		gamePanel = new GamePanel(new Ball(100, 200));
+		gamePanel = new GamePanel();
 		gamePanel.setMaximumSize(new Dimension(400, 650));
 		
 		rightPanel = new JPanel();

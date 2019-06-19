@@ -1,28 +1,41 @@
 package main;
 
-import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.image.BufferedImage;
+import java.io.File;
+
+import javax.imageio.ImageIO;
 
 public class Ball{
 	
 	private Double x;
 	private Double y;
-	private Integer radius;
-	private Color color;
 	private Double speedX;
 	private Double speedY;
+	private BufferedImage sprite;
 	
-	public Ball(Integer x, Integer y) {
+	public Ball(String path, Integer x, Integer y) {
 		this.x = (double) x;
 		this.y = (double) y;
-		this.radius = 20;
-		this.color = new Color(255, 0, 0);
 		this.speedX = 0.8;
 		this.speedY = 1.0;
+		try {
+			this.sprite = ImageIO.read(new File(path));			
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 	
 	public Dimension getDimension() {
-		return new Dimension(this.radius, this.radius);
+		return new Dimension(this.sprite.getWidth(), this.sprite.getHeight());
+	}
+	
+	public Integer getWidth() {
+		return this.sprite.getWidth();
+	}
+	
+	public Integer getHeight() {
+		return this.sprite.getHeight();
 	}
 	
 	public void move() {
@@ -46,22 +59,6 @@ public class Ball{
 		this.y = (double) y;
 	}
 
-	public Integer getRadius() {
-		return radius;
-	}
-
-	public void setRadius(Integer radius) {
-		this.radius = radius;
-	}
-
-	public Color getColor() {
-		return color;
-	}
-
-	public void setColor(Color color) {
-		this.color = color;
-	}
-
 	public Double getSpeedX() {
 		return speedX;
 	}
@@ -77,4 +74,13 @@ public class Ball{
 	public void setSpeedY(Double speedY) {
 		this.speedY = speedY;
 	}
+
+	public BufferedImage getSprite() {
+		return sprite;
+	}
+
+	public void setSprite(BufferedImage sprite) {
+		this.sprite = sprite;
+	}
+	
 }
