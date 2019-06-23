@@ -1,6 +1,7 @@
 package main;
 
 import java.awt.Dimension;
+import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
 import java.io.File;
 
@@ -17,10 +18,10 @@ public class Ball{
 	public Ball(String path, Integer x, Integer y) {
 		this.x = (double) x;
 		this.y = (double) y;
-		this.speedX = 0.8;
+		this.speedX = 1.0;
 		this.speedY = 1.0;
 		try {
-			this.sprite = ImageIO.read(new File(path));			
+			this.sprite = ImageIO.read(new File(getClass().getResource(path).getPath()));			
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -83,4 +84,8 @@ public class Ball{
 		this.sprite = sprite;
 	}
 	
+	public Rectangle getRectangle() {
+		return new Rectangle(this.getX(), this.getY(), 
+				this.getWidth(), this.getHeight());
+	}
 }
