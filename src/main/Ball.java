@@ -7,7 +7,7 @@ import java.io.File;
 
 import javax.imageio.ImageIO;
 
-public class Ball{
+public class Ball {
 	
 	private Double x;
 	private Double y;
@@ -18,7 +18,7 @@ public class Ball{
 	public Ball(String path, Integer x, Integer y) {
 		this.x = (double) x;
 		this.y = (double) y;
-		this.speedX = 1.0;
+		this.speedX = 0.5;
 		this.speedY = 1.0;
 		try {
 			this.sprite = ImageIO.read(new File(getClass().getResource(path).getPath()));			

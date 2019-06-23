@@ -6,7 +6,7 @@ import java.io.File;
 
 import javax.imageio.ImageIO;
 
-public class Flipper implements Collideable {
+public class Flipper {
 	
 	private BufferedImage sprite;
 	private Integer x, y;
