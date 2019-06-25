@@ -14,11 +14,13 @@ public class GameFrame extends JFrame {
 	
 	private GamePanel gamePanel;
 	private JPanel rightPanel;
+	private boolean isPressedLeft = false;
+	private boolean isPressedRight = false;
 	private boolean rotateLeft = false, rotateRight = false;
 	
 	public GameFrame() {
 		gamePanel = new GamePanel();
-		gamePanel.setMaximumSize(new Dimension(400, 650));
+		gamePanel.setMaximumSize(new Dimension(500, 650));
 		
 		rightPanel = new JPanel();
 		rightPanel.setMinimumSize(new Dimension(500, 500));
@@ -33,11 +35,26 @@ public class GameFrame extends JFrame {
 			@Override
 			public void keyPressed(KeyEvent e) {
 				if (e.getKeyCode() == KeyEvent.VK_LEFT) {
+					isPressedLeft = true;
 					rotateLeft = true;
+				}
+				if (e.getKeyCode() == KeyEvent.VK_RIGHT) {
+					isPressedRight = true;
+					rotateRight = true;
+				}
+				if (e.getKeyCode() == KeyEvent.VK_SPACE) {
+					gamePanel.launchBall();
+				}
+			}
+			
+			@Override
+			public void keyReleased(KeyEvent e) {
+				if (e.getKeyCode() == KeyEvent.VK_LEFT) {
+					isPressedLeft = false;
 				}
 				
 				if (e.getKeyCode() == KeyEvent.VK_RIGHT) {
-					rotateRight = true;
+					isPressedRight = false;
 				}
 			}
 		});
@@ -45,7 +62,7 @@ public class GameFrame extends JFrame {
 	
 	public void setup() {
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		this.setSize(400, 650);
+		this.setSize(600, 650);
 		this.setTitle("Pinball");
 		this.setVisible(true);
 	}
@@ -66,7 +83,9 @@ public class GameFrame extends JFrame {
 			if (this.gamePanel.isLeftRising()) {
 				rotation -= 2;
 			} else {
-				rotation += 2;
+				if (!isPressedLeft) {
+					rotation += 2;
+				}
 			}
 			this.gamePanel.setLeftRotation(rotation);
 		}
@@ -85,7 +104,9 @@ public class GameFrame extends JFrame {
 			if (this.gamePanel.isRightRising()) {
 				rotation += 2;
 			} else {
-				rotation -= 2;
+				if (!isPressedRight) {
+					rotation -= 2;
+				}
 			}
 			this.gamePanel.setRightRotation(rotation);
 		}
@@ -97,7 +118,9 @@ public class GameFrame extends JFrame {
 		
 		while (true) {
 			game.computeRotations();
-			game.gamePanel.getBall().move();
+			if (game.gamePanel.isInGame()) {
+				game.gamePanel.getBall().move();
+			}
 			game.gamePanel.update();
 			Thread.sleep(1);
 		}

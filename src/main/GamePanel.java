@@ -1,6 +1,7 @@
 package main;
 
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.geom.AffineTransform;
@@ -19,8 +20,13 @@ public class GamePanel extends JPanel {
 	private Flipper leftFlipper, rightFlipper;
 	private Integer leftRotation = 0, rightRotation = 0;
 	private boolean leftRising = false, rightRising = false;
-	private BufferedImage background, backup;
+	private Background background;
+	private BufferedImage backup;
 	private JLabel imageLabel;
+	private Dimension startPosition = new Dimension(450,600);
+	private Integer flipperOffset = 79;
+	private boolean inGame = false;
+	private boolean isLauching = false;
 		
 	//private ArrayList<Collideable> objects = new ArrayList<Collideable>();
 	
@@ -31,16 +37,17 @@ public class GamePanel extends JPanel {
 			e.printStackTrace();
 		}
 		
-		this.background = copyImage(this.backup);
+		this.background = new Background(100);
+		this.background.setSprite(copyImage(this.backup));
 		
 		this.setBackground(Color.PINK);
 		this.imageLabel = new JLabel();
-		this.imageLabel.setIcon(new ImageIcon(this.background));
+		this.imageLabel.setIcon(new ImageIcon(this.background.getSprite()));
 		this.add(imageLabel);
 		
-		this.ball = new Ball("ball.png", 100, 200);
-		this.leftFlipper = new Flipper("flipperLeft.png", 70, 550);
-		this.rightFlipper = new Flipper("flipperRight.png", 230, 550);
+		this.ball = new Ball("ball.png", this.startPosition);
+		this.leftFlipper = new Flipper("flipperLeft.png", flipperOffset, 550);
+		this.rightFlipper = new Flipper("flipperRight.png", this.background.getWidth()-leftFlipper.getWidth()-flipperOffset, 550);
 		//this.objects.add(this.rightFlipper);
 		//this.objects.add(this.leftFlipper);
 	}
@@ -54,11 +61,14 @@ public class GamePanel extends JPanel {
 	}
 	
 	public void update() {
-		this.background = copyImage(this.backup);
+		this.background.setSprite(copyImage(this.backup));
 		
-		this.sideCollision();
+		if (inGame) {
+			this.sideCollision();
+		}
 		
-		Graphics2D g2d = (Graphics2D) this.background.createGraphics();
+		
+		Graphics2D g2d = (Graphics2D) this.background.getSprite().createGraphics();
 		
 		AffineTransform transform = g2d.getTransform();
 		
@@ -69,13 +79,14 @@ public class GamePanel extends JPanel {
 		g2d.setTransform(AffineTransform.getRotateInstance(Math.toRadians(rightRotation), 
 				this.rightFlipper.getCenterX()+20, this.rightFlipper.getCenterY()-10));
 		g2d.drawImage(this.rightFlipper.getSprite(), this.rightFlipper.getX(), this.rightFlipper.getY(), null);
-		
-		g2d.setTransform(transform);
 
-		this.pixelCollision();
+		g2d.setTransform(transform);
+		if (inGame) {
+			this.pixelCollision();
+		}
 		g2d.drawImage(this.ball.getSprite(), this.ball.getX(), this.ball.getY(), null);
 		
-		this.imageLabel.setIcon(new ImageIcon(this.background));
+		this.imageLabel.setIcon(new ImageIcon(this.background.getSprite()));
 		this.repaint();
 	}
 		
@@ -90,23 +101,31 @@ public class GamePanel extends JPanel {
 			ball.setSpeedY(Math.abs(ball.getSpeedY()));
 		}
 		if (ball.getY() + ball.getHeight() >= background.getHeight()) {
-			ball.setSpeedY((-1) * Math.abs(ball.getSpeedY()));
+			
+			ball.setSpeedX(0.0);
+			ball.setSpeedY(0.0);
+			ball.setPosition(this.startPosition);			
 		}
 	}
 	
+	public void launchBall() {
+		this.isLauching = true;
+		ball.setSpeedX(0.0);
+		ball.setSpeedY(1.0);
+	}
+	
 	public void pixelCollision() {
-		
 		outerLoop:
 		for (int x = 0; x < ball.getWidth(); x++) {
 			for (int y = 0; y < ball.getHeight(); y++) {
 				if ((ball.getSprite().getRGB(x, y) >> 24) != 0x00) {
 					try {
-						if ((this.background.getRGB(x + ball.getX(), y + ball.getY()) >> 24) != 0x00) {
+						if ((this.background.getSprite().getRGB(x + ball.getX(), y + ball.getY()) >> 24) != 0x00) {
 							this.updateSpeed(x, y);
 							break outerLoop;
 						}
 					} catch (ArrayIndexOutOfBoundsException e) {
-						e.printStackTrace();
+						//e.printStackTrace();
 						continue;
 					}
 				}
@@ -177,5 +196,13 @@ public class GamePanel extends JPanel {
 
 	public void setRightRising(boolean rightRising) {
 		this.rightRising = rightRising;
+	}
+
+	public boolean isInGame() {
+		return inGame;
+	}
+
+	public void setInGame(boolean inGame) {
+		this.inGame = inGame;
 	}
 }

@@ -15,9 +15,9 @@ public class Ball {
 	private Double speedY;
 	private BufferedImage sprite;
 	
-	public Ball(String path, Integer x, Integer y) {
-		this.x = (double) x;
-		this.y = (double) y;
+	public Ball(String path, Dimension d) {
+		this.x = (double) d.getWidth();
+		this.y = (double) d.getHeight();
 		this.speedX = 0.5;
 		this.speedY = 1.0;
 		try {
@@ -42,6 +42,11 @@ public class Ball {
 	public void move() {
 		this.x += this.speedX;
 		this.y += this.speedY;
+	}
+	
+	public void setPosition(Dimension d) {
+		this.x = d.getWidth();
+		this.y = d.getHeight();
 	}
 
 	public Integer getX() {
