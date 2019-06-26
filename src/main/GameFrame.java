@@ -1,7 +1,6 @@
 package main;
 
 import java.awt.BorderLayout;
-import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
@@ -24,7 +23,6 @@ public class GameFrame extends JFrame {
 		
 		rightPanel = new JPanel();
 		rightPanel.setMinimumSize(new Dimension(500, 500));
-		rightPanel.setBackground(Color.YELLOW);
 		
 		this.setLayout(new BorderLayout());
 		this.add(gamePanel, BorderLayout.WEST);
@@ -43,7 +41,9 @@ public class GameFrame extends JFrame {
 					rotateRight = true;
 				}
 				if (e.getKeyCode() == KeyEvent.VK_SPACE) {
-					gamePanel.launchBall();
+					if (!gamePanel.isLaunching() && !gamePanel.isInGame()) {
+						gamePanel.launchBall();
+					}
 				}
 			}
 			
@@ -62,7 +62,7 @@ public class GameFrame extends JFrame {
 	
 	public void setup() {
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		this.setSize(600, 650);
+		this.setSize(600, 700);
 		this.setTitle("Pinball");
 		this.setVisible(true);
 	}
@@ -118,9 +118,6 @@ public class GameFrame extends JFrame {
 		
 		while (true) {
 			game.computeRotations();
-			if (game.gamePanel.isInGame()) {
-				game.gamePanel.getBall().move();
-			}
 			game.gamePanel.update();
 			Thread.sleep(1);
 		}

@@ -14,6 +14,7 @@ public class Ball {
 	private Double speedX;
 	private Double speedY;
 	private BufferedImage sprite;
+	private Double gravity = 0.003;
 	
 	public Ball(String path, Dimension d) {
 		this.x = (double) d.getWidth();
@@ -39,9 +40,12 @@ public class Ball {
 		return this.sprite.getHeight();
 	}
 	
-	public void move() {
+	public void move(boolean useGravity) {
 		this.x += this.speedX;
 		this.y += this.speedY;
+		if (useGravity) {
+			this.speedY += this.gravity;
+		}
 	}
 	
 	public void setPosition(Dimension d) {
