@@ -24,7 +24,7 @@ public class GamePanel extends JPanel {
 	private Background background;
 	private BufferedImage backup;
 	private JLabel imageLabel;
-	private Dimension startPosition = new Dimension(450,600);
+	private Dimension startPosition = new Dimension(410,600);
 	private Integer flipperOffset = 79;
 	private Integer backgroundOffset = 100;
 	private boolean inGame = false;
@@ -78,7 +78,9 @@ public class GamePanel extends JPanel {
 		
 		if (inGame) {
 			this.sideCollision();
-		}
+		} else if (isLaunching) {
+			this.lauchingSideCollision();
+		} 
 		
 		Graphics2D g2d = (Graphics2D) this.background.getSprite().createGraphics();
 		
@@ -88,7 +90,13 @@ public class GamePanel extends JPanel {
 		g2d.drawLine(0, 0, 500 - 1, 0);
 		g2d.drawLine(0, 0, 0, 650 - 1);
 		g2d.drawLine(0, 650 - 1, 500 - 1, 650 - 1);
-		g2d.drawLine(400, 0, 400, 650 - 1);
+		if (inGame) {
+			g2d.drawLine(400, 0, 400, 650 - 1);
+		} else {
+			g2d.drawLine(400, 100, 400, 650 - 1);
+		}
+		
+		
 		g2d.drawLine(500 - 1, 0, 500 - 1, 650 - 1);
 		
 		g2d.fillPolygon(this.leftBase);
@@ -135,6 +143,27 @@ public class GamePanel extends JPanel {
 		}
 	}
 	
+	public void lauchingSideCollision() {
+		if (ball.getX() <= background.getWidth()) {
+			if (ball.getY() > 100) {
+				ball.setSpeedX(Math.abs(ball.getSpeedX()));
+				this.lastCollision = Collision.BACKGROUND;
+			}
+		}
+		if (ball.getX() + ball.getWidth() >= background.getWidth() + backgroundOffset - 1) {
+			ball.setSpeedX((-1) * Math.abs(ball.getSpeedX()));
+			this.lastCollision = Collision.BACKGROUND;
+		}
+		if (ball.getY() <= 1) {
+			ball.setSpeedY(Math.abs(ball.getSpeedY()));
+			this.lastCollision = Collision.BACKGROUND;
+		}
+		if (ball.getY() + ball.getHeight() >= background.getHeight()) {	
+			ball.setSpeedY(-1 * Math.abs(ball.getSpeedY()));
+			this.lastCollision = Collision.BACKGROUND;
+		}
+	}
+	
 	public void resetBall() {
 		ball.setSpeedX(0.0);
 		ball.setSpeedY(0.0);
@@ -146,8 +175,8 @@ public class GamePanel extends JPanel {
 	public void launchBall() {
 		this.inGame = false;
 		this.isLaunching = true;
-		ball.setSpeedX(-0.2);
-		ball.setSpeedY(-1.3);
+		ball.setSpeedX(3.0);
+		ball.setSpeedY(-2.0);
 	}
 	
 	public void startGame() {
@@ -175,9 +204,9 @@ public class GamePanel extends JPanel {
 		}
 
 
-		System.out.println(lastCollision);
-		System.out.println(RGB);
-		System.out.println(Color.DARK_GRAY.getRGB());
+//		System.out.println(lastCollision);
+//		System.out.println(RGB);
+//		System.out.println(Color.DARK_GRAY.getRGB());
 	}
 	
 	public boolean isBallInGame() {
