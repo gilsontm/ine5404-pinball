@@ -16,11 +16,11 @@ public class Ball {
 	private BufferedImage sprite;
 	private Double gravity = 0.003;
 	
-	public Ball(String path, Dimension d) {
+	public Ball(String path, Dimension d, Double speedX, Double speedY) {
 		this.x = (double) d.getWidth();
 		this.y = (double) d.getHeight();
-		this.speedX = 0.5;
-		this.speedY = 1.0;
+		this.speedX = speedX;
+		this.speedY = speedY;
 		try {
 			this.sprite = ImageIO.read(new File(getClass().getResource(path).getPath()));			
 		} catch (Exception e) {

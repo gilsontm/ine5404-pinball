@@ -29,7 +29,7 @@ public class GamePanel extends JPanel {
 	private Integer backgroundOffset = 100;
 	private boolean inGame = false;
 	private boolean isLaunching = false;
-	private Double initialSpeedX = 0.6, initialSpeedY = 1.0;
+	private Double initialSpeedX = 0.7, initialSpeedY = 1.0;
 	private Polygon leftBase, rightBase;
 	private Collision lastCollision = Collision.NONE; 
 	
@@ -47,20 +47,16 @@ public class GamePanel extends JPanel {
 		this.imageLabel.setIcon(new ImageIcon(this.background.getSprite()));
 		this.add(imageLabel);
 		
-		this.ball = new Ball("ball.png", this.startPosition);
+		this.ball = new Ball("ball.png", this.startPosition, this.initialSpeedX, this.initialSpeedY);
 		this.leftFlipper = new Flipper("flipperLeft.png", flipperOffset, 550);
 		this.rightFlipper = new Flipper("flipperRight.png", this.background.getWidth() - 
 				leftFlipper.getWidth() - flipperOffset, 550);
 		
-		this.leftBase = new Polygon(new int[] {0, flipperOffset, flipperOffset,
-				flipperOffset + leftFlipper.getWidth() - 20, flipperOffset + 
-				leftFlipper.getWidth() - 20, 0}, new int[] {460, 540, 590, 610, 
-				background.getHeight() - 1, background.getHeight() - 1}, 6);
+		this.leftBase = new Polygon(new int[] {0, flipperOffset + 15, flipperOffset - 5, flipperOffset, 0}, 
+				new int[] {480, 540, 560, background.getHeight() - 1, background.getHeight() - 1}, 5);
 	
-		this.rightBase = new Polygon(new int[] {400, 400 - flipperOffset,
-				400 - flipperOffset, 400 + 20 - flipperOffset - leftFlipper.getWidth(),
-				400 + 20 - flipperOffset - leftFlipper.getWidth(), 400}, new int[] {460, 540, 590, 610, 
-				background.getHeight() - 1, background.getHeight() - 1}, 6);
+		this.rightBase = new Polygon(new int[] {400, 400 - flipperOffset - 15,400 - flipperOffset + 5, 400-flipperOffset, 400}, 
+				new int[] {480, 540, 560, background.getHeight() - 1, background.getHeight() - 1}, 5);
 	}
 	
 	public static BufferedImage copyImage(BufferedImage source){
@@ -121,17 +117,21 @@ public class GamePanel extends JPanel {
 	}
 		
 	public void sideCollision() {
-		if (ball.getX() <= 0) {
+		if (ball.getX() <= 1) {
 			ball.setSpeedX(Math.abs(ball.getSpeedX()));
+			this.lastCollision = Collision.BACKGROUND;
 		}
 		if (ball.getX() + ball.getWidth() >= background.getWidth()) {
 			ball.setSpeedX((-1) * Math.abs(ball.getSpeedX()));
+			this.lastCollision = Collision.BACKGROUND;
 		}
-		if (ball.getY() <= 0) {
+		if (ball.getY() <= 1) {
 			ball.setSpeedY(Math.abs(ball.getSpeedY()));
+			this.lastCollision = Collision.BACKGROUND;
 		}
 		if (ball.getY() + ball.getHeight() >= background.getHeight()) {	
 			this.resetBall();
+			this.lastCollision = Collision.BACKGROUND;
 		}
 	}
 	
@@ -147,7 +147,7 @@ public class GamePanel extends JPanel {
 		this.inGame = false;
 		this.isLaunching = true;
 		ball.setSpeedX(-0.2);
-		ball.setSpeedY(-1.0);
+		ball.setSpeedY(-1.3);
 	}
 	
 	public void startGame() {
@@ -165,17 +165,19 @@ public class GamePanel extends JPanel {
 			
 			// detectar cor baseado no RGB e decidir sobre objetos
 			
-			/*if (color == Color.BLACK) {
-				lastCollision = Collision.FLIPPER;
-			} else if (color == Color.DARK_GRAY) {
+//			if (color == Color.BLACK) {
+//				lastCollision = Collision.FLIPPER;
+			if (RGB == Color.DARK_GRAY.getRGB()) {
 			 	lastCollision = Collision.BACKGROUND;
 			} else {
-				lastCollision = Collision.NONE;
-			}*/
+				lastCollision = Collision.FLIPPER;
+			}
 		}
 
 
 		System.out.println(lastCollision);
+		System.out.println(RGB);
+		System.out.println(Color.DARK_GRAY.getRGB());
 	}
 	
 	public boolean isBallInGame() {
@@ -235,17 +237,18 @@ public class GamePanel extends JPanel {
 		
 		switch (lastCollision) {
 		case FLIPPER:
-			if (leftRising || rightRising) {
-				speedX = this.initialSpeedX * speedX/Math.abs(speedX);
-				speedY = this.initialSpeedY * speedY/Math.abs(speedY);
+			if ((leftRising && x + this.ball.getX() <= background.getWidth()/2) ||
+				(rightRising && x + this.ball.getX() > background.getWidth()/2)) {
+				speedX = (this.initialSpeedX + 0.5) * speedX/Math.abs(speedX);
+				speedY = (this.initialSpeedY + 0.5) * speedY/Math.abs(speedY);
 			} else {
-				speedX = Math.abs(Math.abs(speedX) - 0.01) * speedX/Math.abs(speedX);
-				speedY = Math.abs(Math.abs(speedY) - 0.01) * speedY/Math.abs(speedY);
+				speedX = Math.abs(Math.abs(speedX) - 0.1) * speedX/Math.abs(speedX);
+				speedY = Math.abs(Math.abs(speedY) - 0.07)/1.5 * speedY/Math.abs(speedY);
 			}
 			break;
 		case BACKGROUND:
-			speedX = Math.abs(Math.abs(speedX) - 0.01) * speedX/Math.abs(speedX);
-			speedY = Math.abs(Math.abs(speedY) - 0.01) * speedY/Math.abs(speedY);
+			speedX = Math.abs(Math.abs(speedX) - 0.1) * speedX/Math.abs(speedX);
+			speedY = Math.abs(Math.abs(speedY) - 0.07)/1.5 * speedY/Math.abs(speedY);
 			break;
 		case NONE:
 			break;
