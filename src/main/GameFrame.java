@@ -42,7 +42,7 @@ public class GameFrame extends JFrame {
 				}
 				if (e.getKeyCode() == KeyEvent.VK_SPACE) {
 					if (!gamePanel.isLaunching() && !gamePanel.isInGame()) {
-						gamePanel.launchBall();
+						gamePanel.startLaunch();
 					}
 				}
 			}
@@ -52,9 +52,13 @@ public class GameFrame extends JFrame {
 				if (e.getKeyCode() == KeyEvent.VK_LEFT) {
 					isPressedLeft = false;
 				}
-				
 				if (e.getKeyCode() == KeyEvent.VK_RIGHT) {
 					isPressedRight = false;
+				}
+				if (e.getKeyCode() == KeyEvent.VK_SPACE) {
+					if (!gamePanel.isLaunching() && !gamePanel.isInGame()) {
+						gamePanel.launchBall();
+					}
 				}
 			}
 		});
@@ -62,7 +66,7 @@ public class GameFrame extends JFrame {
 	
 	public void setup() {
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		this.setSize(600, 700);
+		this.setSize(600, 690);
 		this.setTitle("Pinball");
 		this.setVisible(true);
 	}
@@ -71,42 +75,38 @@ public class GameFrame extends JFrame {
 		Integer rotation;
 		if (this.rotateLeft) {
 			rotation = this.gamePanel.getLeftRotation();
-			if (rotation == 0) {
+			if (rotation >= 0) {
 				this.gamePanel.setLeftRising(true);
 			}
 			if (rotation <= -90) {
 				this.gamePanel.setLeftRising(false);
 			}
-			if (rotation == -2 && !this.gamePanel.isLeftRising()) {
+			if (rotation >= -2 && !this.gamePanel.isLeftRising()) {
 				this.rotateLeft = false;
 			}
 			if (this.gamePanel.isLeftRising()) {
 				rotation -= 2;
-			} else {
-				if (!isPressedLeft) {
-					rotation += 2;
-				}
+			} else if (!isPressedLeft || rotation != -90) {
+				rotation += 2;
 			}
 			this.gamePanel.setLeftRotation(rotation);
 		}
 		
 		if (this.rotateRight) {
 			rotation = this.gamePanel.getRightRotation();
-			if (rotation == 0) {
+			if (rotation <= 0) {
 				this.gamePanel.setRightRising(true);
 			}
 			if (rotation >= 90) {
 				this.gamePanel.setRightRising(false);
 			}
-			if (rotation == 2 && !this.gamePanel.isRightRising()) {
+			if (rotation <= 2 && !this.gamePanel.isRightRising()) {
 				this.rotateRight = false;
 			}
 			if (this.gamePanel.isRightRising()) {
 				rotation += 2;
-			} else {
-				if (!isPressedRight) {
-					rotation -= 2;
-				}
+			} else if (!isPressedRight || rotation != 90) {
+				rotation -= 2;
 			}
 			this.gamePanel.setRightRotation(rotation);
 		}
