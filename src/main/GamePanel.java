@@ -2,11 +2,13 @@ package main;
 
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Polygon;
 import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
+import java.util.Random;
 
 import javax.swing.ImageIcon;
 import javax.swing.JLabel;
@@ -22,20 +24,23 @@ public class GamePanel extends JPanel {
 	private Background background;
 	private BufferedImage backup;
 	private JLabel imageLabel;
-	private Dimension startPosition = new Dimension(410,600);
-	private Integer flipperOffset = 79;
+	private Dimension startPosition = new Dimension(405, 615);
+	private Integer flipperOffset = 80;
 	private Integer backgroundOffset = 100;
 	private boolean inGame = false;
 	private boolean isLaunching = false;
 	private boolean settingLaunch = false;
+	private boolean risingWall = false;
+	private boolean gameOver = false;
+	private boolean inPause = false;
 	private Integer wallOffset;
 	private Integer initialWallOffset = 100;
-	private boolean risingWall = false;
 	private Double initialSpeedX = 0.7, initialSpeedY = 1.0;
-	private Polygon leftBase, rightBase;
+	private Polygon leftBase, rightBase, outerBorder;
 	private Collision lastCollision = Collision.NONE;
-	private Color backgroundColor = new Color(0, 50, 50);
+	private Color backgroundColor = new Color(0, 50, 40);
 	private Integer numberLives = 3;
+	private Color foregroundColor = new Color(50, 0, 0);
 	
 	public GamePanel() {
 		this.backup = new BufferedImage(500, 650, BufferedImage.TYPE_INT_ARGB);
@@ -52,27 +57,50 @@ public class GamePanel extends JPanel {
 		this.rightFlipper = new Flipper("flipperRight.png", this.background.getWidth() - 
 				leftFlipper.getWidth() - flipperOffset, 550);
 		
-		this.leftBase = new Polygon(new int[] {0, flipperOffset + 15, flipperOffset, flipperOffset, 0}, 
-				new int[] {480, 540, 560, background.getHeight() - 1, background.getHeight() - 1}, 5);
+		this.leftBase = new Polygon(
+			new int[] {0, flipperOffset + 15, flipperOffset, flipperOffset, 0}, 
+			new int[] {480, 540, 560, background.getHeight() - 1, background.getHeight() - 1},
+			5
+		);
 	
-		this.rightBase = new Polygon(new int[] {400, 400 - flipperOffset - 15,400 - flipperOffset,
-				400 - flipperOffset, 400}, new int[] {480, 540, 560, background.getHeight() - 1,
-				background.getHeight() - 1}, 5);
+		this.rightBase = new Polygon(
+			new int[] {400, 400 - flipperOffset - 15,400 - flipperOffset, 400 - flipperOffset, 400},
+			new int[] {480, 540, 560, background.getHeight() - 1, background.getHeight() - 1},
+			5
+		);
 		
-		this.updateBackup();
+		this.outerBorder = new Polygon(
+			new int[] {0, 500 - 1, 500 - 1, 0},
+			new int[] {0, 0, 650 - 1, 650 - 1},
+			4
+		);
+	
+		this.updateBackup(backgroundColor);
 	}
 	
 	
-	public void updateBackup() {
+	public void updateBackup(Color color) {
 		Graphics2D g2d = (Graphics2D) this.backup.getGraphics();
-		g2d.setColor(backgroundColor);
-		g2d.drawLine(0, 0, 500 - 1, 0);
-		g2d.drawLine(0, 0, 0, 650 - 1);
-		g2d.drawLine(0, 650 - 1, 500 - 1, 650 - 1);
+		g2d.setColor(color);
 		
-		g2d.drawLine(500 - 1, 0, 500 - 1, 650 - 1);
+		g2d.drawPolygon(this.outerBorder);
 		g2d.fillPolygon(this.leftBase);
 		g2d.fillPolygon(this.rightBase);
+		
+		g2d.setColor(foregroundColor);
+		g2d.fillOval(100, 200, 40, 40);
+		g2d.fillOval(200, 100, 40, 40);
+		g2d.fillOval(300, 300, 40, 40);
+		g2d.setColor(Color.WHITE);
+		g2d.drawOval(105, 205, 30, 30);
+		g2d.drawOval(110, 210, 20, 20);
+		g2d.fillOval(115, 215, 10, 10);
+		g2d.drawOval(205, 105, 30, 30);
+		g2d.drawOval(210, 110, 20, 20);
+		g2d.fillOval(215, 115, 10, 10);
+		g2d.drawOval(305, 305, 30, 30);
+		g2d.drawOval(310, 310, 20, 20);
+		g2d.fillOval(315, 315, 10, 10);
 		
 		this.background.setSprite(copyImage(this.backup));
 	}
@@ -88,18 +116,20 @@ public class GamePanel extends JPanel {
 	
 	public void update() {
 		if (this.isLaunching && this.isBallInGame()) {
-			this.startGame();
+			this.enterGame();
 		}
-		
-		this.background.setSprite(copyImage(this.backup));
-		
+				
 		if (inGame) {
 			this.sideCollision();
 		} else if (isLaunching) {
 			this.lauchingSideCollision();
 		} 
 		
+		this.background.setSprite(copyImage(this.backup));
+		
 		Graphics2D g2d = (Graphics2D) this.background.getSprite().createGraphics();
+		
+		this.drawRemainingLives(g2d);
 		
 		AffineTransform transform = g2d.getTransform();
 		
@@ -137,12 +167,66 @@ public class GamePanel extends JPanel {
 			this.pixelCollision();
 		}
 		
-		this.moveBall();
-		
+		if (!gameOver) {
+			
+		}
+		this.moveBall();	
 		g2d.drawImage(this.ball.getSprite(), this.ball.getX(), this.ball.getY(), null);
+		
+		if (this.gameOver) {
+			this.setToGameOver();
+		}
+		
+		if (this.inPause) {
+			this.setToPause();
+		}
 		
 		this.imageLabel.setIcon(new ImageIcon(this.background.getSprite()));
 		this.repaint();
+	}
+	
+	public void setToGameOver() {
+		Graphics2D g2d = (Graphics2D) this.background.getSprite().getGraphics();
+		g2d.setColor(Color.RED);
+		
+		g2d.setFont(new Font("Arial", Font.BOLD, 50));
+		g2d.drawString("GAME OVER", 30, 320);
+		
+		String source = "press enter to restart";
+		g2d.setFont(new Font("Arial", Font.BOLD, 20));
+		g2d.drawString(source, 75, 345);
+	}
+	
+	public void setToPause() {
+		Graphics2D g2d = (Graphics2D) this.background.getSprite().getGraphics();
+		g2d.setColor(Color.BLACK);
+		
+		g2d.setFont(new Font("Arial", Font.BOLD, 80));
+		g2d.drawString("II", 180, 350);
+	}
+	
+	public void setStartPosition() {
+		if (numberLives == 1) {
+			this.startPosition = new Dimension(405, 615);
+		}
+		if (numberLives == 2) {
+			this.startPosition = new Dimension(405, 575);
+		} 
+		if (numberLives == 3) {
+			this.startPosition = new Dimension(405, 535);
+		}
+	}
+	
+	public void drawRemainingLives(Graphics2D g2d) {
+		if (numberLives >= 1) {
+			g2d.drawImage(ball.getSprite(), 405, 615, null);
+		}
+		if (numberLives >= 2) {
+			g2d.drawImage(ball.getSprite(), 405, 575, null);
+		}
+		if (numberLives >= 3) {
+			g2d.drawImage(ball.getSprite(), 405, 535, null);
+		}
 	}
 		
 	public void sideCollision() {
@@ -158,9 +242,14 @@ public class GamePanel extends JPanel {
 			ball.setSpeedY(Math.abs(ball.getSpeedY()));
 			this.lastCollision = Collision.BACKGROUND;
 		}
-		if (ball.getY() + ball.getHeight() >= background.getHeight()) {	
-			this.resetBall();
-			this.lastCollision = Collision.BACKGROUND;
+		if (ball.getY() + ball.getHeight()>= background.getHeight()) {	
+			if (numberLives > 0) {
+				this.resetBall();
+				this.lastCollision = Collision.BACKGROUND;
+			} else {
+				this.gameOver = true;
+				this.inGame = false;
+			}
 		}
 	}
 	
@@ -192,10 +281,9 @@ public class GamePanel extends JPanel {
 		this.inGame = false;
 		this.isLaunching = false;
 		this.settingLaunch = false;
-		this.numberLives -= 1;
 	}
 	
-	public void startLaunch() {
+	public void setLaunch() {
 		if (!settingLaunch) {
 			this.settingLaunch = true;
 			this.wallOffset = this.initialWallOffset; 
@@ -208,14 +296,24 @@ public class GamePanel extends JPanel {
 		this.settingLaunch = false;
 		ball.setSpeedX(3.0);
 		ball.setSpeedY(-2.0);
+		setStartPosition();
+		ball.setPosition(this.startPosition);
+		this.numberLives -= 1;
+		setStartPosition();
 	}
 	
-	public void startGame() {
+	public void enterGame() {
 		this.inGame = true;
 		this.isLaunching = false;
 		this.settingLaunch = false;
 		ball.setSpeedX(this.initialSpeedX);
 		ball.setSpeedY(this.initialSpeedY);
+	}
+	
+	public void restartGame() {
+		this.numberLives = 3;
+		this.gameOver = false;
+		this.resetBall();
 	}
 	
 	public void setLastCollision(Integer RGB) {
@@ -224,6 +322,8 @@ public class GamePanel extends JPanel {
 		} else {
 			if (RGB == backgroundColor.getRGB()) {
 			 	lastCollision = Collision.BACKGROUND;
+			} else if (RGB == foregroundColor.getRGB()) {
+				lastCollision = Collision.FOREGROUND;
 			} else {
 				lastCollision = Collision.FLIPPER;
 			}
@@ -299,6 +399,10 @@ public class GamePanel extends JPanel {
 			speedX = Math.abs(Math.abs(speedX) - 0.2) * speedX/Math.abs(speedX);
 			speedY = Math.abs(Math.abs(speedY) - 0.07)/1.5 * speedY/Math.abs(speedY);
 			break;
+		case FOREGROUND:
+			speedX = (this.initialSpeedX + (new Random()).nextDouble()) * speedX/Math.abs(speedX);
+			speedY = (this.initialSpeedY + (new Random()).nextDouble()) * speedY/Math.abs(speedY);
+			break;
 		case NONE:
 			break;
 		}
@@ -370,4 +474,32 @@ public class GamePanel extends JPanel {
 	public void setLauching(boolean isLaunching) {
 		this.isLaunching = isLaunching;
 	}
+
+	public Integer getNumberLives() {
+		return numberLives;
+	}
+
+	public void setNumberLives(Integer numberLives) {
+		this.numberLives = numberLives;
+	}
+
+
+	public boolean isGameOver() {
+		return gameOver;
+	}
+
+
+	public void setGameOver(boolean gameOver) {
+		this.gameOver = gameOver;
+	}
+
+
+	public boolean isInPause() {
+		return inPause;
+	}
+
+
+	public void setInPause(boolean inPause) {
+		this.inPause = inPause;
+	}	
 }

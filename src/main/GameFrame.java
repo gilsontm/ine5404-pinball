@@ -41,8 +41,23 @@ public class GameFrame extends JFrame {
 					rotateRight = true;
 				}
 				if (e.getKeyCode() == KeyEvent.VK_SPACE) {
-					if (!gamePanel.isLaunching() && !gamePanel.isInGame()) {
-						gamePanel.startLaunch();
+					if (!gamePanel.isLaunching() &&
+						!gamePanel.isInGame() &&
+						!gamePanel.isGameOver()) {
+						gamePanel.setLaunch();
+					}
+				}
+				if (e.getKeyCode() == KeyEvent.VK_P) {
+					if (gamePanel.isInPause()) {
+						gamePanel.setInPause(false);
+					} else if (!gamePanel.isGameOver()) {
+						gamePanel.setInPause(true);
+						gamePanel.setToPause();
+					}
+				}
+				if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+					if (gamePanel.isGameOver()) {
+						gamePanel.restartGame();
 					}
 				}
 			}
@@ -117,8 +132,10 @@ public class GameFrame extends JFrame {
 		game.setup();
 		
 		while (true) {
-			game.computeRotations();
-			game.gamePanel.update();
+			if (!game.gamePanel.isInPause() && !game.gamePanel.isGameOver()) {
+				game.computeRotations();
+				game.gamePanel.update();
+			}
 			Thread.sleep(1);
 		}
 	}
