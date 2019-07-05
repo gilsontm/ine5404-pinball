@@ -41,6 +41,7 @@ public class GamePanel extends JPanel {
 	private Color backgroundColor = new Color(0, 50, 40);
 	private Integer numberLives = 3;
 	private Color foregroundColor = new Color(50, 0, 0);
+	private Integer totalPoints = 0;
 	
 	public GamePanel() {
 		this.backup = new BufferedImage(500, 650, BufferedImage.TYPE_INT_ARGB);
@@ -118,6 +119,8 @@ public class GamePanel extends JPanel {
 		if (this.isLaunching && this.isBallInGame()) {
 			this.enterGame();
 		}
+		
+		
 				
 		if (inGame) {
 			this.sideCollision();
@@ -167,10 +170,15 @@ public class GamePanel extends JPanel {
 			this.pixelCollision();
 		}
 		
-		if (!gameOver) {
-			
+		if (lastCollision == Collision.FOREGROUND) {
+			totalPoints++;
 		}
-		this.moveBall();	
+		
+		System.out.println(lastCollision);
+
+		lastCollision = Collision.NONE;
+		
+		this.moveBall();
 		g2d.drawImage(this.ball.getSprite(), this.ball.getX(), this.ball.getY(), null);
 		
 		if (this.gameOver) {
@@ -228,7 +236,7 @@ public class GamePanel extends JPanel {
 			g2d.drawImage(ball.getSprite(), 405, 535, null);
 		}
 	}
-		
+
 	public void sideCollision() {
 		if (ball.getX() <= 1) {
 			ball.setSpeedX(Math.abs(ball.getSpeedX()));
@@ -245,7 +253,6 @@ public class GamePanel extends JPanel {
 		if (ball.getY() + ball.getHeight()>= background.getHeight()) {	
 			if (numberLives > 0) {
 				this.resetBall();
-				this.lastCollision = Collision.BACKGROUND;
 			} else {
 				this.gameOver = true;
 				this.inGame = false;
@@ -311,6 +318,7 @@ public class GamePanel extends JPanel {
 	}
 	
 	public void restartGame() {
+		this.totalPoints = 0;
 		this.numberLives = 3;
 		this.gameOver = false;
 		this.resetBall();
@@ -321,7 +329,7 @@ public class GamePanel extends JPanel {
 			lastCollision = Collision.NONE;
 		} else {
 			if (RGB == backgroundColor.getRGB()) {
-			 	lastCollision = Collision.BACKGROUND;
+			 	//lastCollision = Collision.BACKGROUND;
 			} else if (RGB == foregroundColor.getRGB()) {
 				lastCollision = Collision.FOREGROUND;
 			} else {
@@ -501,5 +509,15 @@ public class GamePanel extends JPanel {
 
 	public void setInPause(boolean inPause) {
 		this.inPause = inPause;
+	}
+
+
+	public Integer getTotalPoints() {
+		return totalPoints;
+	}
+
+
+	public void setTotalPoints(Integer totalPoints) {
+		this.totalPoints = totalPoints;
 	}	
 }

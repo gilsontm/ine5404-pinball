@@ -6,6 +6,7 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 
 @SuppressWarnings("serial")
@@ -13,6 +14,7 @@ public class GameFrame extends JFrame {
 	
 	private GamePanel gamePanel;
 	private JPanel rightPanel;
+	private JLabel currentPoints;
 	private boolean isPressedLeft = false;
 	private boolean isPressedRight = false;
 	private boolean rotateLeft = false, rotateRight = false;
@@ -23,7 +25,9 @@ public class GameFrame extends JFrame {
 		
 		rightPanel = new JPanel();
 		rightPanel.setMinimumSize(new Dimension(500, 500));
-		
+		rightPanel.setLayout(new BorderLayout());
+		currentPoints = new JLabel(gamePanel.getTotalPoints().toString());
+		rightPanel.add(currentPoints, BorderLayout.NORTH);
 		this.setLayout(new BorderLayout());
 		this.add(gamePanel, BorderLayout.WEST);
 		this.add(rightPanel, BorderLayout.CENTER);
@@ -125,19 +129,25 @@ public class GameFrame extends JFrame {
 			}
 			this.gamePanel.setRightRotation(rotation);
 		}
+		
+	}
+	
+	public void run() throws InterruptedException {
+		this.setup();
+		
+		while (true) {
+			if (!this.gamePanel.isInPause() && !this.gamePanel.isGameOver()) {
+				this.computeRotations();
+				this.gamePanel.update();
+				this.currentPoints.setText(gamePanel.getTotalPoints().toString());
+			}
+			Thread.sleep(1);
+		}
 	}
 	
 	public static void main(String[] args) throws InterruptedException {
 		GameFrame game = new GameFrame();
-		game.setup();
-		
-		while (true) {
-			if (!game.gamePanel.isInPause() && !game.gamePanel.isGameOver()) {
-				game.computeRotations();
-				game.gamePanel.update();
-			}
-			Thread.sleep(1);
-		}
+		game.run();
 	}
 
 }
