@@ -3,7 +3,6 @@ package main;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
-import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Polygon;
 import java.awt.geom.AffineTransform;
@@ -21,52 +20,47 @@ public class GamePanel extends JPanel {
 	private Flipper leftFlipper, rightFlipper;
 	private Integer leftRotation = 0, rightRotation = 0;
 	private boolean leftRising = false, rightRising = false;
-	private Background background;
-	private BufferedImage backup;
+	private boolean risingWall = false;
+	private Background visibleBackground;
+	private Background unvisibleBackground;
+	//private BufferedImage visibleBackup;
+	//private BufferedImage unvisibleBackup;
 	private JLabel imageLabel;
 	private Dimension startPosition = new Dimension(405, 615);
 	private Integer flipperOffset = 80;
 	private Integer backgroundOffset = 100;
-	private boolean inGame = false;
-	private boolean isLaunching = false;
-	private boolean settingLaunch = false;
-	private boolean risingWall = false;
-	private boolean gameOver = false;
-	private boolean inPause = false;
 	private Integer wallOffset;
 	private Integer initialWallOffset = 100;
 	private Double initialSpeedX = 0.7, initialSpeedY = 1.0;
 	private Polygon leftBase, rightBase, outerBorder;
 	private Collision lastCollision = Collision.NONE;
 	private Color backgroundColor = new Color(0, 50, 40);
-	private Integer numberLives = 3;
 	private Color foregroundColor = new Color(50, 0, 0);
+	private Integer numberLives = 3;
 	private Integer totalPoints = 0;
+	private GameState state = GameState.WAITING_LAUNCH;
+	private boolean isPaused = false;
 	
 	public GamePanel() {
-		this.backup = new BufferedImage(500, 650, BufferedImage.TYPE_INT_ARGB);
-
-		this.background = new Background(backgroundOffset);
-		this.background.setSprite(copyImage(this.backup));
+		this.visibleBackground = new Background(backgroundOffset);
+		this.unvisibleBackground = new Background(backgroundOffset);
 		
 		this.imageLabel = new JLabel();
-		this.imageLabel.setIcon(new ImageIcon(this.background.getSprite()));
 		this.add(imageLabel);
 		
 		this.ball = new Ball("ball.png", this.startPosition, this.initialSpeedX, this.initialSpeedY);
 		this.leftFlipper = new Flipper("flipperLeft.png", flipperOffset, 550);
-		this.rightFlipper = new Flipper("flipperRight.png", this.background.getWidth() - 
-				leftFlipper.getWidth() - flipperOffset, 550);
+		this.rightFlipper = new Flipper("flipperRight.png", 400 - leftFlipper.getWidth() - flipperOffset, 550);
 		
 		this.leftBase = new Polygon(
 			new int[] {0, flipperOffset + 15, flipperOffset, flipperOffset, 0}, 
-			new int[] {480, 540, 560, background.getHeight() - 1, background.getHeight() - 1},
+			new int[] {480, 540, 560, 650 - 1, 650 - 1},
 			5
 		);
 	
 		this.rightBase = new Polygon(
 			new int[] {400, 400 - flipperOffset - 15,400 - flipperOffset, 400 - flipperOffset, 400},
-			new int[] {480, 540, 560, background.getHeight() - 1, background.getHeight() - 1},
+			new int[] {480, 540, 560, 650 - 1, 650 - 1},
 			5
 		);
 		
@@ -75,72 +69,121 @@ public class GamePanel extends JPanel {
 			new int[] {0, 0, 650 - 1, 650 - 1},
 			4
 		);
-	
-		this.updateBackup(backgroundColor);
+		
+		//this.visibleBackup = new BufferedImage(500, 650, BufferedImage.TYPE_INT_ARGB);
+		//this.unvisibleBackup = new BufferedImage(500, 650, BufferedImage.TYPE_INT_ARGB);
+		
+		//this.makeBackup(visibleBackup, visibleBackground, Color.BLACK, Color.BLACK);
+		//this.makeBackup(unvisibleBackup, unvisibleBackground, backgroundColor, foregroundColor);
 	}
 	
-	
-	public void updateBackup(Color color) {
-		Graphics2D g2d = (Graphics2D) this.backup.getGraphics();
-		g2d.setColor(color);
+	/*public void makeBackup(BufferedImage backupSprite, Background visibleBackground,
+			Color backgroundColor, Color foregroundColor) {
+		
+		Graphics2D g2d = (Graphics2D) backupSprite.getGraphics();
+		g2d.setColor(backgroundColor);
 		
 		g2d.drawPolygon(this.outerBorder);
 		g2d.fillPolygon(this.leftBase);
 		g2d.fillPolygon(this.rightBase);
 		
 		g2d.setColor(foregroundColor);
-		g2d.fillOval(100, 200, 40, 40);
-		g2d.fillOval(200, 100, 40, 40);
-		g2d.fillOval(300, 300, 40, 40);
+		g2d.fillOval(100, 200, 30, 30);
+		g2d.fillOval(200, 100, 30, 30);
+		g2d.fillOval(300, 300, 30, 30);
 		g2d.setColor(Color.WHITE);
-		g2d.drawOval(105, 205, 30, 30);
-		g2d.drawOval(110, 210, 20, 20);
+		g2d.drawOval(105, 205, 22, 22);
+		g2d.drawOval(110, 210, 15, 15);
 		g2d.fillOval(115, 215, 10, 10);
-		g2d.drawOval(205, 105, 30, 30);
-		g2d.drawOval(210, 110, 20, 20);
+		g2d.drawOval(205, 105, 22, 22);
+		g2d.drawOval(210, 110, 15, 15);
 		g2d.fillOval(215, 115, 10, 10);
-		g2d.drawOval(305, 305, 30, 30);
-		g2d.drawOval(310, 310, 20, 20);
+		g2d.drawOval(305, 305, 22, 22);
+		g2d.drawOval(310, 310, 15, 15);
 		g2d.fillOval(315, 315, 10, 10);
 		
-		this.background.setSprite(copyImage(this.backup));
-	}
+		visibleBackground.setSprite(copyImage(backupSprite));	
+	}*/
 	
-	public static BufferedImage copyImage(BufferedImage source){
-	    BufferedImage b = new BufferedImage(source.getWidth(), source.getHeight(),
-	    		source.getType());
-	    Graphics g = b.getGraphics();
-	    g.drawImage(source, 0, 0, null);
-	    g.dispose();
-	    return b;
+	public BufferedImage makeBackground(Color backgroundColor, Color foregroundColor) {
+		BufferedImage image = new BufferedImage(500, 650, BufferedImage.TYPE_INT_ARGB);
+		
+		Graphics2D g2d = (Graphics2D) image.getGraphics();
+		g2d.setColor(backgroundColor);
+		
+		g2d.drawPolygon(this.outerBorder);
+		g2d.fillPolygon(this.leftBase);
+		g2d.fillPolygon(this.rightBase);
+		
+		g2d.setColor(foregroundColor);
+		g2d.fillOval(100, 200, 30, 30);
+		g2d.fillOval(200, 100, 30, 30);
+		g2d.fillOval(300, 300, 30, 30);
+		g2d.setColor(Color.WHITE);
+		g2d.drawOval(105, 205, 22, 22);
+		g2d.drawOval(110, 210, 15, 15);
+		g2d.fillOval(115, 215, 10, 10);
+		g2d.drawOval(205, 105, 22, 22);
+		g2d.drawOval(210, 110, 15, 15);
+		g2d.fillOval(215, 115, 10, 10);
+		g2d.drawOval(305, 305, 22, 22);
+		g2d.drawOval(310, 310, 15, 15);
+		g2d.fillOval(315, 315, 10, 10);
+		
+		return image;
 	}
 	
 	public void update() {
-		if (this.isLaunching && this.isBallInGame()) {
+		if (state == GameState.LAUNCHING && this.isBallInGame()) {
 			this.enterGame();
 		}
 		
-		
-				
-		if (inGame) {
+		if (state == GameState.PLAYING) {
 			this.sideCollision();
-		} else if (isLaunching) {
+		} else if (state == GameState.LAUNCHING) {
 			this.lauchingSideCollision();
 		} 
 		
-		this.background.setSprite(copyImage(this.backup));
+		//this.visibleBackground.setSprite(copyImage(this.visibleBackup));
+		//this.unvisibleBackground.setSprite(copyImage(this.unvisibleBackup));
 		
-		Graphics2D g2d = (Graphics2D) this.background.getSprite().createGraphics();
+		this.visibleBackground.setSprite(makeBackground(Color.BLACK, Color.BLACK));
+		this.unvisibleBackground.setSprite(makeBackground(backgroundColor, foregroundColor));
+		
+		Graphics2D g2d = (Graphics2D) visibleBackground.getSprite().getGraphics();
+		
+		this.drawBackground(g2d, Color.BLACK);
+		this.drawBackground((Graphics2D) unvisibleBackground.getSprite().getGraphics(), backgroundColor);
+		
 		
 		this.drawRemainingLives(g2d);
 		
+		if (state == GameState.PLAYING) {
+			this.pixelCollision();
+		}
+		
+		if (lastCollision == Collision.FOREGROUND) {
+			totalPoints++;
+		}
+
+		lastCollision = Collision.NONE;
+		
+		this.moveBall();
+		
+		g2d.drawImage(this.ball.getSprite(), this.ball.getX(), this.ball.getY(), null);
+		
+		this.imageLabel.setIcon(new ImageIcon(visibleBackground.getSprite()));
+		this.repaint();
+	}
+	
+	public void drawBackground(Graphics2D g2d, Color backgroundColor) {
 		AffineTransform transform = g2d.getTransform();
 		
 		g2d.setColor(backgroundColor);
 		
-		if (inGame) {
+		if (state == GameState.PLAYING) {
 			g2d.drawLine(400, 0, 400, 650 - 1);
-		} else if (settingLaunch) {
+		} else if (state == GameState.PREPARING_LAUNCH) {
 			g2d.drawLine(400, wallOffset, 400, 650 - 1);
 			if (wallOffset >= 450) {
 				this.risingWall = true;
@@ -150,12 +193,12 @@ public class GamePanel extends JPanel {
 			}
 			
 			this.wallOffset += (risingWall? -2 : 2);
-	    } else if (isLaunching) {
+	    } else if (state == GameState.LAUNCHING) {
 			g2d.drawLine(400, wallOffset, 400, 650 - 1);
 		} else {
 			g2d.drawLine(400, initialWallOffset, 400, 650 - 1);
 		}
-				
+		
 		g2d.setTransform(AffineTransform.getRotateInstance(Math.toRadians(leftRotation), 
 				this.leftFlipper.getCenterX()-20, this.leftFlipper.getCenterY()-10));
 		g2d.drawImage(this.leftFlipper.getSprite(), this.leftFlipper.getX(), this.leftFlipper.getY(), null);
@@ -165,63 +208,45 @@ public class GamePanel extends JPanel {
 		g2d.drawImage(this.rightFlipper.getSprite(), this.rightFlipper.getX(), this.rightFlipper.getY(), null);
 
 		g2d.setTransform(transform);
-		
-		if (inGame) {
-			this.pixelCollision();
-		}
-		
-		if (lastCollision == Collision.FOREGROUND) {
-			totalPoints++;
-		}
-		
-		System.out.println(lastCollision);
-
-		lastCollision = Collision.NONE;
-		
-		this.moveBall();
-		g2d.drawImage(this.ball.getSprite(), this.ball.getX(), this.ball.getY(), null);
-		
-		if (this.gameOver) {
-			this.setToGameOver();
-		}
-		
-		if (this.inPause) {
-			this.setToPause();
-		}
-		
-		this.imageLabel.setIcon(new ImageIcon(this.background.getSprite()));
-		this.repaint();
 	}
 	
-	public void setToGameOver() {
-		Graphics2D g2d = (Graphics2D) this.background.getSprite().getGraphics();
+	public void drawGameOver() {
+		Graphics2D g2d = (Graphics2D) visibleBackground.getSprite().getGraphics();
 		g2d.setColor(Color.RED);
 		
 		g2d.setFont(new Font("Arial", Font.BOLD, 50));
-		g2d.drawString("GAME OVER", 30, 320);
+		g2d.drawString("GAME OVER", 30, 420);
 		
 		String source = "press enter to restart";
 		g2d.setFont(new Font("Arial", Font.BOLD, 20));
-		g2d.drawString(source, 75, 345);
+		g2d.drawString(source, 75, 445);
+		
+		this.imageLabel.setIcon(new ImageIcon(visibleBackground.getSprite()));
+		this.repaint();
 	}
 	
-	public void setToPause() {
-		Graphics2D g2d = (Graphics2D) this.background.getSprite().getGraphics();
+	public void drawPaused() {
+		Graphics2D g2d = (Graphics2D) visibleBackground.getSprite().getGraphics();
 		g2d.setColor(Color.BLACK);
 		
 		g2d.setFont(new Font("Arial", Font.BOLD, 80));
 		g2d.drawString("II", 180, 350);
+		
+		this.imageLabel.setIcon(new ImageIcon(visibleBackground.getSprite()));
+		this.repaint();
 	}
-	
-	public void setStartPosition() {
-		if (numberLives == 1) {
+		
+	public void updateStartPosition() {
+		switch (numberLives) {
+		case 1:
 			this.startPosition = new Dimension(405, 615);
-		}
-		if (numberLives == 2) {
+			break;
+		case 2:
 			this.startPosition = new Dimension(405, 575);
-		} 
-		if (numberLives == 3) {
+			break;
+		case 3:
 			this.startPosition = new Dimension(405, 535);
+			break;
 		}
 	}
 	
@@ -238,36 +263,35 @@ public class GamePanel extends JPanel {
 	}
 
 	public void sideCollision() {
-		if (ball.getX() <= 1) {
+		if (ball.getX() <= 2) {
 			ball.setSpeedX(Math.abs(ball.getSpeedX()));
 			this.lastCollision = Collision.BACKGROUND;
 		}
-		if (ball.getX() + ball.getWidth() >= background.getWidth()) {
+		if (ball.getX() + ball.getWidth() >= visibleBackground.getWidth() - 2) {
 			ball.setSpeedX((-1) * Math.abs(ball.getSpeedX()));
 			this.lastCollision = Collision.BACKGROUND;
 		}
-		if (ball.getY() <= 1) {
+		if (ball.getY() <= 2) {
 			ball.setSpeedY(Math.abs(ball.getSpeedY()));
 			this.lastCollision = Collision.BACKGROUND;
 		}
-		if (ball.getY() + ball.getHeight()>= background.getHeight()) {	
+		if (ball.getY() + ball.getHeight()>= visibleBackground.getHeight() - 2) {	
 			if (numberLives > 0) {
 				this.resetBall();
 			} else {
-				this.gameOver = true;
-				this.inGame = false;
+				this.state = GameState.OVER;
 			}
 		}
 	}
 	
 	public void lauchingSideCollision() {
-		if (ball.getX() <= background.getWidth()) {
+		if (ball.getX() <= visibleBackground.getWidth()) {
 			if (ball.getY() + ball.getHeight() > wallOffset) {
 				ball.setSpeedX(Math.abs(ball.getSpeedX()));
 				this.lastCollision = Collision.BACKGROUND;
 			}
 		}
-		if (ball.getX() + ball.getWidth() >= background.getWidth() + backgroundOffset - 1) {
+		if (ball.getX() + ball.getWidth() >= visibleBackground.getWidth() + backgroundOffset - 1) {
 			ball.setSpeedX((-1) * Math.abs(ball.getSpeedX()));
 			this.lastCollision = Collision.BACKGROUND;
 		}
@@ -275,7 +299,7 @@ public class GamePanel extends JPanel {
 			ball.setSpeedY(Math.abs(ball.getSpeedY()));
 			this.lastCollision = Collision.BACKGROUND;
 		}
-		if (ball.getY() + ball.getHeight() >= background.getHeight()) {	
+		if (ball.getY() + ball.getHeight() >= visibleBackground.getHeight()) {	
 			ball.setSpeedY(-1 * Math.abs(ball.getSpeedY()));
 			this.lastCollision = Collision.BACKGROUND;
 		}
@@ -285,34 +309,28 @@ public class GamePanel extends JPanel {
 		ball.setSpeedX(0.0);
 		ball.setSpeedY(0.0);
 		ball.setPosition(this.startPosition);
-		this.inGame = false;
-		this.isLaunching = false;
-		this.settingLaunch = false;
+		this.state = GameState.WAITING_LAUNCH;
 	}
 	
 	public void setLaunch() {
-		if (!settingLaunch) {
-			this.settingLaunch = true;
+		if (state != GameState.PREPARING_LAUNCH) {
+			this.state = GameState.PREPARING_LAUNCH;
 			this.wallOffset = this.initialWallOffset; 
 		}
 	}
 	
 	public void launchBall() {
-		this.inGame = false;
-		this.isLaunching = true;
-		this.settingLaunch = false;
+		this.state = GameState.LAUNCHING;
 		ball.setSpeedX(3.0);
 		ball.setSpeedY(-2.0);
-		setStartPosition();
+		updateStartPosition();
 		ball.setPosition(this.startPosition);
 		this.numberLives -= 1;
-		setStartPosition();
+		updateStartPosition();
 	}
 	
 	public void enterGame() {
-		this.inGame = true;
-		this.isLaunching = false;
-		this.settingLaunch = false;
+		this.state = GameState.PLAYING;
 		ball.setSpeedX(this.initialSpeedX);
 		ball.setSpeedY(this.initialSpeedY);
 	}
@@ -320,7 +338,7 @@ public class GamePanel extends JPanel {
 	public void restartGame() {
 		this.totalPoints = 0;
 		this.numberLives = 3;
-		this.gameOver = false;
+		this.state = GameState.WAITING_LAUNCH;
 		this.resetBall();
 	}
 	
@@ -329,7 +347,7 @@ public class GamePanel extends JPanel {
 			lastCollision = Collision.NONE;
 		} else {
 			if (RGB == backgroundColor.getRGB()) {
-			 	//lastCollision = Collision.BACKGROUND;
+			 	lastCollision = Collision.BACKGROUND;
 			} else if (RGB == foregroundColor.getRGB()) {
 				lastCollision = Collision.FOREGROUND;
 			} else {
@@ -339,10 +357,10 @@ public class GamePanel extends JPanel {
 	}
 	
 	public boolean isBallInGame() {
-		if (ball.getX() < 0 || ball.getX() + ball.getWidth() > background.getWidth()) {
+		if (ball.getX() < 0 || ball.getX() + ball.getWidth() > visibleBackground.getWidth()) {
 			return false;
 		}
-		if (ball.getY() < 0 || ball.getY() + ball.getHeight() > background.getHeight()) {
+		if (ball.getY() < 0 || ball.getY() + ball.getHeight() > visibleBackground.getHeight()) {
 			return false;
 		}
 		return true;
@@ -355,7 +373,7 @@ public class GamePanel extends JPanel {
 			for (int y = 0; y < ball.getHeight(); y++) {
 				if ((ball.getSprite().getRGB(x, y) >> 24) != 0x00) {
 					try {
-						RGB = this.background.getSprite().getRGB(x + ball.getX(), y + ball.getY());
+						RGB = unvisibleBackground.getSprite().getRGB(x + ball.getX(), y + ball.getY());
 						if ((RGB >> 24) != 0x00) {
 							this.updateSpeed(x, y, RGB);
 							break outerLoop;
@@ -363,15 +381,20 @@ public class GamePanel extends JPanel {
 					} catch (ArrayIndexOutOfBoundsException e) {
 						continue;
 					}
-				}
-				
+				}			
 			}
 		}
 	}
 	
+	public void moveBall() {
+		if (state == GameState.LAUNCHING) {
+			ball.move(false);
+		} else if (state == GameState.PLAYING) {
+			ball.move(true);
+		}
+	}
+	
 	public void updateSpeed(Integer x, Integer y, Integer RGB) {
-		
-		this.setLastCollision(RGB);
 		
 		Double speedX = ball.getSpeedX();
 		Double speedY = ball.getSpeedY();
@@ -392,12 +415,14 @@ public class GamePanel extends JPanel {
 			speedY = -1 * Math.abs(speedY);
 		}
 		
+		this.setLastCollision(RGB);
+		
 		switch (lastCollision) {
 		case FLIPPER:
-			if ((leftRising && x + this.ball.getX() <= background.getWidth()/2) ||
-				(rightRising && x + this.ball.getX() > background.getWidth()/2)) {
-				speedX = (this.initialSpeedX + 0.5) * speedX/Math.abs(speedX);
-				speedY = (this.initialSpeedY + 0.5) * speedY/Math.abs(speedY);
+			if ((leftRising  && x + this.ball.getX() <= visibleBackground.getWidth()/2) ||
+				(rightRising && x + this.ball.getX() > visibleBackground.getWidth()/2)) {
+				speedX = (initialSpeedX + 0.7) * speedX/Math.abs(speedX);
+				speedY = (initialSpeedY + 0.7) * speedY/Math.abs(speedY);
 			} else {
 				speedX = Math.abs(Math.abs(speedX) - 0.2) * speedX/Math.abs(speedX);
 				speedY = Math.abs(Math.abs(speedY) - 0.07)/1.5 * speedY/Math.abs(speedY);
@@ -418,15 +443,7 @@ public class GamePanel extends JPanel {
 		ball.setSpeedX(speedX);
 		ball.setSpeedY(speedY);
 	}
-	
-	public void moveBall() {
-		if (this.isLaunching) {
-			ball.move(false);
-		} else if (this.inGame) {
-			ball.move(true);
-		}
-	}
-		
+			
 	public Ball getBall() {
 		return ball;
 	}
@@ -466,21 +483,36 @@ public class GamePanel extends JPanel {
 	public void setRightRising(boolean rightRising) {
 		this.rightRising = rightRising;
 	}
-
-	public boolean isInGame() {
-		return inGame;
+	
+	public boolean isPlaying() {
+		return state == GameState.PLAYING;
 	}
-
-	public void setInGame(boolean inGame) {
-		this.inGame = inGame;
+	
+	public boolean isPaused() {
+		return this.isPaused;
 	}
-
+	
+	public void togglePaused() {
+		this.isPaused = !isPaused;
+		if (isPaused) {
+			this.drawPaused();
+		}
+	}
+	
 	public boolean isLaunching() {
-		return isLaunching;
+		return state == GameState.LAUNCHING;
 	}
-
-	public void setLauching(boolean isLaunching) {
-		this.isLaunching = isLaunching;
+	
+	public boolean isOver() {
+		return state == GameState.OVER;
+	}
+	
+	public boolean isWaitingLaunch() {
+		return state == GameState.WAITING_LAUNCH;
+	}
+	
+	public boolean isPreparingLaunch() {
+		return state == GameState.PREPARING_LAUNCH;
 	}
 
 	public Integer getNumberLives() {
@@ -491,33 +523,15 @@ public class GamePanel extends JPanel {
 		this.numberLives = numberLives;
 	}
 
-
-	public boolean isGameOver() {
-		return gameOver;
-	}
-
-
-	public void setGameOver(boolean gameOver) {
-		this.gameOver = gameOver;
-	}
-
-
-	public boolean isInPause() {
-		return inPause;
-	}
-
-
-	public void setInPause(boolean inPause) {
-		this.inPause = inPause;
-	}
-
-
 	public Integer getTotalPoints() {
 		return totalPoints;
 	}
 
-
 	public void setTotalPoints(Integer totalPoints) {
 		this.totalPoints = totalPoints;
-	}	
+	}
+
+	public void setState(GameState state) {
+		this.state = state;
+	}
 }

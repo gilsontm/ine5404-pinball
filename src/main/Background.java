@@ -1,9 +1,6 @@
 package main;
 
 import java.awt.image.BufferedImage;
-import java.io.File;
-
-import javax.imageio.ImageIO;
 
 public class Background {
 
@@ -14,15 +11,6 @@ public class Background {
 		this.offset = offset;
 	}
 	
-	public Background(String path, Integer offset) {
-		try {
-			this.sprite = ImageIO.read(new File(getClass().getResource(path).getPath()));	
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		this.offset = offset;
-	}
-
 	public Integer getWidth() {
 		return sprite.getWidth() - offset;
  	}
@@ -38,5 +26,4 @@ public class Background {
 	public void setSprite(BufferedImage sprite) {
 		this.sprite = sprite;
 	}
-	
 }

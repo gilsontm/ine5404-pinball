@@ -2,6 +2,7 @@ package main;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 
@@ -27,6 +28,7 @@ public class GameFrame extends JFrame {
 		rightPanel.setMinimumSize(new Dimension(500, 500));
 		rightPanel.setLayout(new BorderLayout());
 		currentPoints = new JLabel(gamePanel.getTotalPoints().toString());
+		currentPoints.setFont(new Font("Arial", Font.BOLD, 20));
 		rightPanel.add(currentPoints, BorderLayout.NORTH);
 		this.setLayout(new BorderLayout());
 		this.add(gamePanel, BorderLayout.WEST);
@@ -45,22 +47,17 @@ public class GameFrame extends JFrame {
 					rotateRight = true;
 				}
 				if (e.getKeyCode() == KeyEvent.VK_SPACE) {
-					if (!gamePanel.isLaunching() &&
-						!gamePanel.isInGame() &&
-						!gamePanel.isGameOver()) {
+					if (gamePanel.isWaitingLaunch()) {
 						gamePanel.setLaunch();
 					}
 				}
 				if (e.getKeyCode() == KeyEvent.VK_P) {
-					if (gamePanel.isInPause()) {
-						gamePanel.setInPause(false);
-					} else if (!gamePanel.isGameOver()) {
-						gamePanel.setInPause(true);
-						gamePanel.setToPause();
+					if (!gamePanel.isOver()) {
+						gamePanel.togglePaused();
 					}
 				}
 				if (e.getKeyCode() == KeyEvent.VK_ENTER) {
-					if (gamePanel.isGameOver()) {
+					if (gamePanel.isOver()) {
 						gamePanel.restartGame();
 					}
 				}
@@ -75,7 +72,7 @@ public class GameFrame extends JFrame {
 					isPressedRight = false;
 				}
 				if (e.getKeyCode() == KeyEvent.VK_SPACE) {
-					if (!gamePanel.isLaunching() && !gamePanel.isInGame()) {
+					if (gamePanel.isPreparingLaunch()) {
 						gamePanel.launchBall();
 					}
 				}
@@ -129,19 +126,23 @@ public class GameFrame extends JFrame {
 			}
 			this.gamePanel.setRightRotation(rotation);
 		}
-		
 	}
 	
 	public void run() throws InterruptedException {
 		this.setup();
 		
 		while (true) {
-			if (!this.gamePanel.isInPause() && !this.gamePanel.isGameOver()) {
+			if (!gamePanel.isPaused() && !gamePanel.isOver()) {
 				this.computeRotations();
 				this.gamePanel.update();
 				this.currentPoints.setText(gamePanel.getTotalPoints().toString());
+			} else if (gamePanel.isOver()) {
+				gamePanel.drawGameOver();
+			} else if (gamePanel.isPaused()) {
+				gamePanel.drawPaused();
 			}
-			Thread.sleep(1);
+			//Thread.sleep(1);
+			Thread.sleep(0, 50);
 		}
 	}
 	
