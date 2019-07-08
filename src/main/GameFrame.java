@@ -5,6 +5,7 @@ import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.util.ArrayList;
 
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -15,7 +16,7 @@ public class GameFrame extends JFrame {
 	
 	private GamePanel gamePanel;
 	private JPanel rightPanel;
-	private JLabel currentPoints;
+	private JLabel currentPoints, scoreBoard;
 	private boolean isPressedLeft = false;
 	private boolean isPressedRight = false;
 	private boolean rotateLeft = false, rotateRight = false;
@@ -25,11 +26,16 @@ public class GameFrame extends JFrame {
 		gamePanel.setMaximumSize(new Dimension(500, 650));
 		
 		rightPanel = new JPanel();
-		rightPanel.setMinimumSize(new Dimension(500, 500));
 		rightPanel.setLayout(new BorderLayout());
-		currentPoints = new JLabel(gamePanel.getTotalPoints().toString());
-		currentPoints.setFont(new Font("Arial", Font.BOLD, 20));
+	
+		currentPoints = new JLabel();
+		currentPoints.setFont(new Font("Arial", Font.BOLD, 23));
 		rightPanel.add(currentPoints, BorderLayout.NORTH);
+		
+		scoreBoard = new JLabel();
+		this.updateScoreBoard();
+		rightPanel.add(scoreBoard, BorderLayout.CENTER);
+		
 		this.setLayout(new BorderLayout());
 		this.add(gamePanel, BorderLayout.WEST);
 		this.add(rightPanel, BorderLayout.CENTER);
@@ -38,6 +44,16 @@ public class GameFrame extends JFrame {
 			
 			@Override
 			public void keyPressed(KeyEvent e) {
+				
+				if (gamePanel.isWaitingBegin()) {
+					if (Character.isLetter(e.getKeyChar()) ||
+						Character.isDigit(e.getKeyChar())) {
+						gamePanel.addToPlayerName(e.getKeyChar());
+					}
+					if (e.getKeyCode() == KeyEvent.VK_BACK_SPACE) {
+						gamePanel.trimPlayerName();
+					}
+				}
 				if (e.getKeyCode() == KeyEvent.VK_LEFT) {
 					isPressedLeft = true;
 					rotateLeft = true;
@@ -48,17 +64,23 @@ public class GameFrame extends JFrame {
 				}
 				if (e.getKeyCode() == KeyEvent.VK_SPACE) {
 					if (gamePanel.isWaitingLaunch()) {
-						gamePanel.setLaunch();
+						gamePanel.prepareLaunch();
 					}
 				}
 				if (e.getKeyCode() == KeyEvent.VK_P) {
-					if (!gamePanel.isOver()) {
+					if (!gamePanel.isWaitingBegin() &&
+						!gamePanel.isOver() &&
+						!gamePanel.isWaitingLaunch()) {
 						gamePanel.togglePaused();
 					}
 				}
 				if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+					if (gamePanel.isWaitingBegin()) {
+						gamePanel.setState(GameState.WAITING_LAUNCH);
+					}
 					if (gamePanel.isOver()) {
 						gamePanel.restartGame();
+						updateScoreBoard();
 					}
 				}
 			}
@@ -82,9 +104,28 @@ public class GameFrame extends JFrame {
 	
 	public void setup() {
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		this.setSize(600, 690);
+		this.setSize(700, 685);
 		this.setTitle("Pinball");
 		this.setVisible(true);
+	}
+	
+	public void updateScoreBoard() {
+		ArrayList<Register> scores = gamePanel.getScores();
+		String text;
+		if (scores.size() == 0) {
+			text = "";
+		} else {
+			text = "<html><table><tr><td>#</td><td>NAME</td><td>SCORE</td></tr>";
+			for (int i = 0; i < scores.size(); i++) {
+				text += "<tr><td>" + (i+1) + "</td>"
+						+ "<td> " + scores.get(i).getName() + "</td>"
+						+ "<td style='color:red;'> "
+						+ String.format("%06d", scores.get(i).getScore())
+						+ "</td></tr>";
+			}
+			text += "</table></html>";
+		}
+		this.scoreBoard.setText(text);
 	}
 	
 	public void computeRotations() {
@@ -135,7 +176,9 @@ public class GameFrame extends JFrame {
 			if (!gamePanel.isPaused() && !gamePanel.isOver()) {
 				this.computeRotations();
 				this.gamePanel.update();
-				this.currentPoints.setText(gamePanel.getTotalPoints().toString());
+				String points = String.format("%06d", gamePanel.getTotalPoints());
+				this.currentPoints.setText("<html>SCORE<span style='color:red;'>" +
+											points + "</span></html>");
 			} else if (gamePanel.isOver()) {
 				gamePanel.drawGameOver();
 			} else if (gamePanel.isPaused()) {
