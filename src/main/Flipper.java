@@ -2,7 +2,6 @@ package main;
 
 import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
-import java.io.File;
 
 import javax.imageio.ImageIO;
 
@@ -15,7 +14,7 @@ public class Flipper {
 		this.x = x;
 		this.y = y;
 		try {
-			this.sprite = ImageIO.read(new File(getClass().getResource(path).getPath()));			
+			this.sprite = ImageIO.read(getClass().getResource("/resources/"+path));			
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

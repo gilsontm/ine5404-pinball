@@ -36,6 +36,13 @@ public class GameFrame extends JFrame {
 		this.updateScoreBoard();
 		rightPanel.add(scoreBoard, BorderLayout.CENTER);
 		
+		JLabel instructionLabel = new JLabel(
+				"<html><p>press P to pause</p>"
+				+ "<p>arrows control flippers</p>"
+				+ "<p>hold space bar to launch</p></html>");
+		
+		rightPanel.add(instructionLabel, BorderLayout.SOUTH);
+		
 		this.setLayout(new BorderLayout());
 		this.add(gamePanel, BorderLayout.WEST);
 		this.add(rightPanel, BorderLayout.CENTER);
