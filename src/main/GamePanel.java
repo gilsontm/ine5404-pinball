@@ -349,13 +349,13 @@ public class GamePanel extends JPanel {
 		this.state = GameState.BEGIN;
 	}
 	
-	public void setLastCollision(Integer RGB) {
-		if (RGB == null) {
+	public void setLastCollision(Integer ARGB) {
+		if (ARGB == null) {
 			lastCollision = Collision.NONE;
 		} else {
-			if (RGB == backgroundColor.getRGB()) {
+			if (ARGB == backgroundColor.getRGB()) {
 			 	lastCollision = Collision.BACKGROUND;
-			} else if (RGB == foregroundColor.getRGB()) {
+			} else if (ARGB == foregroundColor.getRGB()) {
 				lastCollision = Collision.FOREGROUND;
 			} else {
 				lastCollision = Collision.FLIPPER;
@@ -374,15 +374,15 @@ public class GamePanel extends JPanel {
 	}
 	
 	public void pixelCollision() {
-		Integer RGB = null;
+		Integer ARGB = null;
 		outerLoop:
 		for (int x = 0; x < ball.getWidth(); x++) {
 			for (int y = 0; y < ball.getHeight(); y++) {
 				if ((ball.getSprite().getRGB(x, y) >> 24) != 0x00) {
 					try {
-						RGB = unvisibleBackground.getSprite().getRGB(x + ball.getX(), y + ball.getY());
-						if ((RGB >> 24) != 0x00) {
-							this.updateSpeed(x, y, RGB);
+						ARGB = unvisibleBackground.getSprite().getRGB(x + ball.getX(), y + ball.getY());
+						if ((ARGB >> 24) != 0x00) {
+							this.updateSpeed(x, y, ARGB);
 							break outerLoop;
 						}
 					} catch (ArrayIndexOutOfBoundsException e) {
@@ -401,7 +401,7 @@ public class GamePanel extends JPanel {
 		}
 	}
 	
-	public void updateSpeed(Integer x, Integer y, Integer RGB) {
+	public void updateSpeed(Integer x, Integer y, Integer ARGB) {
 		
 		Double speedX = ball.getSpeedX();
 		Double speedY = ball.getSpeedY();
@@ -422,7 +422,7 @@ public class GamePanel extends JPanel {
 			speedY = -1 * Math.abs(speedY);
 		}
 		
-		this.setLastCollision(RGB);
+		this.setLastCollision(ARGB);
 		
 		switch (lastCollision) {
 		case FLIPPER:
